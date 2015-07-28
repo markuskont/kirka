@@ -1,5 +1,5 @@
 # kirka
 
-Hello world
+Hello world!
 
 ## TODO
