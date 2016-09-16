@@ -21,17 +21,21 @@ def SIGINT_handler(signum, frame):
     syslog.syslog('SIGINT received, shutting down')
     RUNNING = False
 
-def SpaceSavingAdd(counters, item, k):
-    if item in counters:
-        counters[item] = counters[item] + 1
-    elif len(counters) < k:
-        counters[item] = 1
-    else:
-        item_with_least_hits = min(counters, key=counters.get)
-        del counters[item_with_least_hits]
-        counters[item] = 1
-        #print "DROPPED: %s" % item_with_least_hits
-    return counters
+class SpaceSaving():
+    def __init__(self):
+        self.counters = {}
+    def add(self, item, k):
+        if item in self.counters:
+            self.counters[item] = self.counters[item] + 1
+        elif len(self.counters) < k:
+            self.counters[item] = 1
+        else:
+            item_with_least_hits = min(self.counters, key=self.counters.get)
+            del self.counters[item_with_least_hits]
+            self.counters[item] = 1
+            #print "DROPPED: %s" % item_with_least_hits
+    def returnItems(self):
+        return self.counters
 
 class App():
     def __init__(self):
@@ -57,8 +61,9 @@ class App():
         while(RUNNING):
             try:
                 datagram = server.recv( MAX_DATAGRAM_SIZE )
-                topk = SpaceSavingAdd(counters, datagram, K)
-                print topk
+                topk = SpaceSaving()
+                topk.add(datagram, K)
+                print topk.returnItems()
             except socket.timeout:
                 continue
             except:
