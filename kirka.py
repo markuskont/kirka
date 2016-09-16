@@ -24,6 +24,7 @@ def SIGINT_handler(signum, frame):
 class SpaceSaving():
     def __init__(self):
         self.counters = {}
+        self.candidates = {}
     def add(self, item, k):
         if item in self.counters:
             self.counters[item] = self.counters[item] + 1
@@ -34,6 +35,18 @@ class SpaceSaving():
             del self.counters[item_with_least_hits]
             self.counters[item] = 1
             #print "DROPPED: %s" % item_with_least_hits
+            # IDEA - second structure to maintain possible candidates
+            # IDEA - replace min(K) with candidate C if threshold T is exeeded for C
+            #if item in self.candidates:
+            #    self.candidates[item] = self.candidates[item] + 1
+            #    if candidates[item] > t:
+            #        del self.counters[min(self.counters, key=self.counters.get)]
+            #        self.counters[item] = 1
+            #elif len(self.candidates) < c:
+            #    self.candidates[item] = 1
+            #else:
+            #    del self.candidates[min(self.candidates, key=self.candidates.get)]
+            #    self.candidates[item] = 1
     def returnItems(self):
         return self.counters
 
@@ -56,18 +69,17 @@ class App():
         syslog.syslog("Opening socket...")
         server = socket.socket( socket.AF_UNIX, socket.SOCK_DGRAM )
         server.bind(SOCKET)
-        counters = {}
+        topk = SpaceSaving()
 
         while(RUNNING):
             try:
                 datagram = server.recv( MAX_DATAGRAM_SIZE )
-                topk = SpaceSaving()
                 topk.add(datagram, K)
                 print topk.returnItems()
             except socket.timeout:
                 continue
             except Exception as e:
-                syslog.syslog(syslog.LOG_ERR, e)
+                syslog.syslog(syslog.LOG_ERR, str(e))
                 break
 
         syslog.syslog("Shutting down...")
