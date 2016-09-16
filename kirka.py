@@ -66,7 +66,8 @@ class App():
                 print topk.returnItems()
             except socket.timeout:
                 continue
-            except:
+            except Exception as e:
+                syslog.syslog(syslog.LOG_ERR, e)
                 break
 
         syslog.syslog("Shutting down...")
