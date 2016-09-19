@@ -9,7 +9,9 @@ import logging
 import syslog
 
 SOCKET='/tmp/sock'
-K=3
+K=10
+K2=5
+T=3
 STDLOG='/var/log/kirka.log'
 STDERR='/var/log/kirka.err'
 RUNNING = True
@@ -25,30 +27,32 @@ class SpaceSaving():
     def __init__(self):
         self.counters = {}
         self.candidates = {}
-    def add(self, item, k):
+    def add(self, item, k, k2, t):
         if item in self.counters:
             self.counters[item] = self.counters[item] + 1
         elif len(self.counters) < k:
             self.counters[item] = 1
         else:
-            item_with_least_hits = min(self.counters, key=self.counters.get)
-            del self.counters[item_with_least_hits]
-            self.counters[item] = 1
             #print "DROPPED: %s" % item_with_least_hits
             # IDEA - second structure to maintain possible candidates
             # IDEA - replace min(K) with candidate C if threshold T is exeeded for C
-            #if item in self.candidates:
-            #    self.candidates[item] = self.candidates[item] + 1
-            #    if candidates[item] > t:
-            #        del self.counters[min(self.counters, key=self.counters.get)]
-            #        self.counters[item] = 1
-            #elif len(self.candidates) < c:
-            #    self.candidates[item] = 1
-            #else:
-            #    del self.candidates[min(self.candidates, key=self.candidates.get)]
-            #    self.candidates[item] = 1
+            if item in self.candidates:
+                self.candidates[item] = self.candidates[item] + 1
+                if self.candidates[item] == t:
+                    dropout = min(self.counters, key=self.counters.get)
+                    del self.counters[dropout]
+                    self.counters[item] = t
+                    del self.candidates[item]
+                    print dropout
+            elif len(self.candidates) < k2:
+                self.candidates[item] = 1
+            else:
+                del self.candidates[min(self.candidates, key=self.candidates.get)]
+                self.candidates[item] = 1
     def returnItems(self):
         return self.counters
+    def returnCandidates(self):
+        return self.candidates
 
 class App():
     def __init__(self):
@@ -74,8 +78,7 @@ class App():
         while(RUNNING):
             try:
                 datagram = server.recv( MAX_DATAGRAM_SIZE )
-                topk.add(datagram, K)
-                print topk.returnItems()
+                topk.add(datagram, K, K2, T)
             except socket.timeout:
                 continue
             except Exception as e:
