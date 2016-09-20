@@ -12,6 +12,7 @@ import syslog
 import json
 
 from algorithms.SpaceSaving import *
+from algorithms.Frequent import *
 
 SOCKET='/tmp/sock'
 K=10
@@ -67,6 +68,7 @@ class App():
         global RUNNING
         syslog.syslog('SIGINT received, shutting down')
         RUNNING = False
+
     def SIGHUP_handler(self, signum, frame):
         syslog.syslog('SIGHUP received, dumping data')
         if not os.path.exists(DUMPFILE_K):

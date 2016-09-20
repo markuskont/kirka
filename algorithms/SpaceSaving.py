@@ -5,6 +5,7 @@ class SpaceSaving():
     def __init__(self):
         self.counters   = {}
         self.candidates = {}
+        
     def add(self, item, k, k2, t):
         if item in self.counters:
             self.counters[item] = self.counters[item] + 1
@@ -24,7 +25,9 @@ class SpaceSaving():
             else:
                 del self.candidates[min(self.candidates, key=self.candidates.get)]
                 self.candidates[item] = 1
+
     def returnItems(self):
         return self.counters
+
     def returnCandidates(self):
         return self.candidates
