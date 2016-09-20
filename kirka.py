@@ -7,6 +7,7 @@ import re
 from daemon import runner, DaemonContext
 import logging
 import syslog
+import json
 
 SOCKET='/tmp/sock'
 K=10
@@ -14,14 +15,9 @@ K2=5
 T=3
 STDLOG='/var/log/kirka.log'
 STDERR='/var/log/kirka.err'
+DUMPFILE_K='/tmp/topk.json'
 RUNNING = True
 MAX_DATAGRAM_SIZE = 4096
-
-def SIGINT_handler(signum, frame):
-    global RUNNING
-
-    syslog.syslog('SIGINT received, shutting down')
-    RUNNING = False
 
 class SpaceSaving():
     def __init__(self):
@@ -33,9 +29,6 @@ class SpaceSaving():
         elif len(self.counters) < k:
             self.counters[item] = 1
         else:
-            #print "DROPPED: %s" % item_with_least_hits
-            # IDEA - second structure to maintain possible candidates
-            # IDEA - replace min(K) with candidate C if threshold T is exeeded for C
             if item in self.candidates:
                 self.candidates[item] = self.candidates[item] + 1
                 if self.candidates[item] == t:
@@ -43,7 +36,7 @@ class SpaceSaving():
                     del self.counters[dropout]
                     self.counters[item] = t
                     del self.candidates[item]
-                    print dropout
+                    return dropout
             elif len(self.candidates) < k2:
                 self.candidates[item] = 1
             else:
@@ -56,39 +49,52 @@ class SpaceSaving():
 
 class App():
     def __init__(self):
-        self.stdin_path = '/dev/null'
-        self.stdout_path = '/dev/tty'
-        self.stderr_path = '/dev/tty'
-        self.pidfile_path =  '/tmp/kirka.pid'
-        self.pidfile_timeout = 5
+        self.stdin_path         = '/dev/null'
+        self.stdout_path        = '/dev/tty'
+        self.stderr_path        = '/dev/tty'
+        self.pidfile_path       =  '/tmp/kirka.pid'
+        self.pidfile_timeout    = 5
+        self.topk               = SpaceSaving()
 
     def run(self):
         syslog.syslog('starting daemon, send SIGINT to exit')
         global RUNNING
 
-        signal.signal(signal.SIGINT, SIGINT_handler)
+        signal.signal(signal.SIGINT, self.SIGINT_handler)
+        signal.signal(signal.SIGHUP, self.SIGHUP_handler)
 
         if os.path.exists( SOCKET ):
             os.remove( SOCKET )
         syslog.syslog("Opening socket...")
         server = socket.socket( socket.AF_UNIX, socket.SOCK_DGRAM )
         server.bind(SOCKET)
-        topk = SpaceSaving()
 
         while(RUNNING):
             try:
                 datagram = server.recv( MAX_DATAGRAM_SIZE )
-                topk.add(datagram, K, K2, T)
+                item = self.topk.add(datagram, K, K2, T)
+                if item:
+                    print item
             except socket.timeout:
                 continue
             except Exception as e:
                 syslog.syslog(syslog.LOG_ERR, str(e))
-                break
+                continue
 
         syslog.syslog("Shutting down...")
         server.close()
         os.remove( SOCKET )
         syslog.syslog("Done")
+
+    def SIGINT_handler(self, signum, frame):
+        global RUNNING
+        syslog.syslog('SIGINT received, shutting down')
+        RUNNING = False
+    def SIGHUP_handler(self, signum, frame):
+        syslog.syslog('SIGHUP received, dumping data')
+        if not os.path.exists(DUMPFILE_K):
+            with open(DUMPFILE_K, 'w') as fp:
+                json.dump(self.topk.returnItems(), fp)
 
 class KDaemonRunner(runner.DaemonRunner):
     def _terminate_daemon_process(self):
