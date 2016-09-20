@@ -13,15 +13,16 @@ SOCKET='/tmp/sock'
 K=10
 K2=5
 T=3
-STDLOG='/var/log/kirka.log'
-STDERR='/var/log/kirka.err'
+STDLOG='/dev/tty'
+STDERR='/dev/tty'
 DUMPFILE_K='/tmp/topk.json'
+PIDFILE='/tmp/kirka.pid'
 RUNNING = True
 MAX_DATAGRAM_SIZE = 4096
 
 class SpaceSaving():
     def __init__(self):
-        self.counters = {}
+        self.counters   = {}
         self.candidates = {}
     def add(self, item, k, k2, t):
         if item in self.counters:
@@ -50,9 +51,9 @@ class SpaceSaving():
 class App():
     def __init__(self):
         self.stdin_path         = '/dev/null'
-        self.stdout_path        = '/dev/tty'
-        self.stderr_path        = '/dev/tty'
-        self.pidfile_path       =  '/tmp/kirka.pid'
+        self.stdout_path        = STDLOG
+        self.stderr_path        = STDERR
+        self.pidfile_path       = PIDFILE
         self.pidfile_timeout    = 5
         self.topk               = SpaceSaving()
 
