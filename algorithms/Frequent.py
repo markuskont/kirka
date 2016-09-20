@@ -13,7 +13,7 @@ class Frequent():
         else:
             for key, value in self.counters.copy().items():
                 if value > 1:
-                    self.counters[key] = vvalue - 1
+                    self.counters[key] = value - 1
                 else:
                     del self.counters[key]
                     return key

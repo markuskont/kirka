@@ -55,6 +55,10 @@ $SYSLOGNG = <<SCRIPT
   sudo apt-get update && sudo apt-get remove rsyslog -y && sudo apt-get install syslog-ng -y
 SCRIPT
 
+$PACKAGES = <<SCRIPT
+  sudo apt-get install python-daemon jq -y
+SCRIPT
+
 boxes = [
   {
     :name => "kirka",
@@ -79,6 +83,7 @@ Vagrant.configure(2) do |config|
       config.vm.provision "shell", inline: $GO
       config.vm.provision "shell", inline: $NODEJS
       config.vm.provision "shell", inline: $SYSLOGNG
+      config.vm.provision "shell", inline: $PACKAGES
       #config.vm.synced_folder ".", "/home/vagrant/src/github.com/influxdata/telegraf"
     end
   end
