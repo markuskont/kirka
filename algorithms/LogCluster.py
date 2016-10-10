@@ -3,6 +3,7 @@
 # see - http://ristov.github.io/logcluster/
 
 import os, re, argparse, sys
+import hashlib
 
 MAN_SUPPORT = """
 Find clusters (line patterns) that match at least <support> lines in input
@@ -58,6 +59,7 @@ class LogCluster():
         self.fwords = {}
         self.candidates = {}
 
+    # FIND FREQUENT WORDS
     def findFrequentWords(self, inFile):
         with open(inFile) as f:
             for line in f:
@@ -68,6 +70,15 @@ class LogCluster():
                 del self.fwords[word]
         return self.fwords
 
+    def incrementCounter(self, array, counts):
+        for item in array:
+            if not item in counts:
+                counts[item] = 1
+            else:
+                counts[item] += 1
+        return counts
+
+    # FIND CANDIDATES
     def findCandidates(self, inFile, fwords):
         with open(inFile) as f:
             for line in f:
@@ -88,9 +99,7 @@ class LogCluster():
                 if not candidate_id in self.candidates:
                     self.candidates[candidate_id] = self.initiateCandidate(candidate, wildcards)
                 else:
-                    total = sum(wildcards)
-                    self.candidates[candidate_id]['count'] += 1
-
+                    self.modifyCandidate(candidate_id, wildcards)
         return self.candidates
 
     def initiateCandidate(self, words, wildcards):
@@ -103,27 +112,36 @@ class LogCluster():
             structure['wildcards'].append([wildcard, wildcard])
         return structure
 
+    def modifyCandidate(self, ID, wildcards):
+        total = len(wildcards)
+        i = 0
+        while i < total:
+            ## debug
+            #ID_HASH = hashlib.md5(ID.encode()).hexdigest()
+
+            w_from  = self.candidates[ID]['wildcards'][i][0]
+            w_to    = self.candidates[ID]['wildcards'][i][1]
+            if w_from > wildcards[i]:
+                self.candidates[ID]['wildcards'][i][0] = wildcards[i]
+            elif w_to < wildcards[i]:
+                self.candidates[ID]['wildcards'][i][1] = wildcards[i]
+            i += 1
+        self.candidates[ID]['count'] += 1
+
+    # GLOBAL HELPERS
     def splitLine(self, line):
         return line.split()
-
-    def incrementCounter(self, array, counts):
-        for item in array:
-            if not item in counts:
-                counts[item] = 1
-            else:
-                counts[item] += 1
-        return counts
 
 
 def main():
     cluster = LogCluster(SUPPORT)
     fwords = cluster.findFrequentWords(INPUT)
     candidates = cluster.findCandidates(INPUT, fwords)
-    for key, value in candidates.items():
-        print('---------------------')
-        print(key)
-        print('---------------------')
-        print(value)
+    #for key, value in candidates.items():
+    #    print('---------------------')
+    #    print(key)
+    #    print('---------------------')
+    #    print(value)
 
 
 if __name__ == "__main__":
