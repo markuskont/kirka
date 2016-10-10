@@ -60,14 +60,19 @@ class LogCluster():
         self.candidates = {}
 
     # FIND FREQUENT WORDS
-    def findFrequentWords(self, inFile):
-        with open(inFile) as f:
-            for line in f:
-                words = self.splitLine(line)
-                self.fwords = self.incrementCounter(words, self.fwords)
+    def findFrequentWords(self, source):
+        self.findWordsFromFile(source)
         for word, count in self.fwords.copy().items():
             if count < self.support:
                 del self.fwords[word]
+
+    def findWordsFromFile(self, inFile):
+        with open(inFile) as f:
+            for line in f:
+                self.fwords = self.wordsFromLine(line)
+
+    def wordsFromLine(self, line):
+        return self.incrementCounter(self.splitLine(line), self.fwords)
 
     def incrementCounter(self, array, counts):
         for item in array:
@@ -78,18 +83,19 @@ class LogCluster():
         return counts
 
     # FIND CANDIDATES
-    def findCandidates(self, inFile):
+    def findCandidatesFromFile(self, inFile):
         with open(inFile) as f:
             for line in f:
-                candidate, wildcards, varnum = self.compareLineWithFrequentWords(line)
-                if not candidate:
-                    break
-                candidate_id = '\n'.join(candidate)
-                if not candidate_id in self.candidates:
-                    self.candidates[candidate_id] = self.initiateCandidate(candidate, wildcards)
-                else:
-                    self.modifyCandidate(candidate_id, wildcards)
-        return self.candidates
+                self.candidateFromLine(line)
+
+    def candidateFromLine(self, line):
+        candidate, wildcards, varnum = self.compareLineWithFrequentWords(line)
+        if candidate:
+            candidate_id = '\n'.join(candidate)
+            if not candidate_id in self.candidates:
+                self.candidates[candidate_id] = self.initiateCandidate(candidate, wildcards)
+            else:
+                self.modifyCandidate(candidate_id, wildcards)
 
     def compareLineWithFrequentWords(self, line):
         candidate = []
@@ -119,8 +125,6 @@ class LogCluster():
         total = len(wildcards)
         i = 0
         while i < total:
-            ## debug
-            #ID_HASH = hashlib.md5(ID.encode()).hexdigest()
             w_from  = self.candidates[ID]['wildcards'][i][0]
             w_to    = self.candidates[ID]['wildcards'][i][1]
             if w_from > wildcards[i]:
@@ -130,15 +134,25 @@ class LogCluster():
             i += 1
         self.candidates[ID]['count'] += 1
 
+    # FIND CLUSTERS
+    def findFrequentCandidates(self):
+        pass
+
     # GLOBAL HELPERS
     def splitLine(self, line):
         return line.split()
 
+    def returnFrequentWords(self):
+        return self.fwords
+
+    def returnCandidates(self):
+        return self.candidates
 
 def main():
     cluster = LogCluster(SUPPORT)
     cluster.findFrequentWords(INPUT)
-    candidates = cluster.findCandidates(INPUT)
+    cluster.findCandidatesFromFile(INPUT)
+    candidates = cluster.returnCandidates()
     for key, value in candidates.items():
         ID_HASH = hashlib.md5(key.encode()).hexdigest()
         print('---------------------')
