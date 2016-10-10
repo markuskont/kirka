@@ -68,7 +68,6 @@ class LogCluster():
         for word, count in self.fwords.copy().items():
             if count < self.support:
                 del self.fwords[word]
-        return self.fwords
 
     def incrementCounter(self, array, counts):
         for item in array:
