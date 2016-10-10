@@ -79,20 +79,10 @@ class LogCluster():
         return counts
 
     # FIND CANDIDATES
-    def findCandidates(self, inFile, fwords):
+    def findCandidates(self, inFile):
         with open(inFile) as f:
             for line in f:
-                candidate = []
-                wildcards = []
-                varnum = 0
-                words = self.splitLine(line)
-                for word in words:
-                    if word in fwords:
-                        candidate.append(word)
-                        wildcards.append(varnum)
-                        varnum = 0
-                    else:
-                        varnum += 1
+                candidate, wildcards, varnum = self.compareLineWithFrequentWords(line)
                 if not candidate:
                     break
                 candidate_id = '\n'.join(candidate)
@@ -101,6 +91,20 @@ class LogCluster():
                 else:
                     self.modifyCandidate(candidate_id, wildcards)
         return self.candidates
+
+    def compareLineWithFrequentWords(self, line):
+        candidate = []
+        wildcards = []
+        varnum = 0
+        words = self.splitLine(line)
+        for word in words:
+            if word in self.fwords:
+                candidate.append(word)
+                wildcards.append(varnum)
+                varnum = 0
+            else:
+                varnum += 1
+        return candidate, wildcards, varnum
 
     def initiateCandidate(self, words, wildcards):
         structure = {}
@@ -118,7 +122,6 @@ class LogCluster():
         while i < total:
             ## debug
             #ID_HASH = hashlib.md5(ID.encode()).hexdigest()
-
             w_from  = self.candidates[ID]['wildcards'][i][0]
             w_to    = self.candidates[ID]['wildcards'][i][1]
             if w_from > wildcards[i]:
@@ -136,12 +139,13 @@ class LogCluster():
 def main():
     cluster = LogCluster(SUPPORT)
     fwords = cluster.findFrequentWords(INPUT)
-    candidates = cluster.findCandidates(INPUT, fwords)
-    #for key, value in candidates.items():
-    #    print('---------------------')
-    #    print(key)
-    #    print('---------------------')
-    #    print(value)
+    candidates = cluster.findCandidates(INPUT)
+    for key, value in candidates.items():
+        ID_HASH = hashlib.md5(key.encode()).hexdigest()
+        print('---------------------')
+        print(ID_HASH)
+        print('---------------------')
+        print(value)
 
 
 if __name__ == "__main__":
