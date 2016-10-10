@@ -136,7 +136,9 @@ class LogCluster():
 
     # FIND CLUSTERS
     def findFrequentCandidates(self):
-        pass
+        for key, candidate in self.candidates.copy().items():
+            if candidate['count'] < self.support:
+                del self.candidates[key]
 
     # GLOBAL HELPERS
     def splitLine(self, line):
@@ -152,6 +154,10 @@ def main():
     cluster = LogCluster(SUPPORT)
     cluster.findFrequentWords(INPUT)
     cluster.findCandidatesFromFile(INPUT)
+    cluster.findFrequentCandidates()
+
+    # DEBUG
+    words = cluster.returnFrequentWords()
     candidates = cluster.returnCandidates()
     for key, value in candidates.items():
         ID_HASH = hashlib.md5(key.encode()).hexdigest()
