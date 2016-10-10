@@ -138,7 +138,7 @@ class LogCluster():
 
 def main():
     cluster = LogCluster(SUPPORT)
-    fwords = cluster.findFrequentWords(INPUT)
+    cluster.findFrequentWords(INPUT)
     candidates = cluster.findCandidates(INPUT)
     for key, value in candidates.items():
         ID_HASH = hashlib.md5(key.encode()).hexdigest()
