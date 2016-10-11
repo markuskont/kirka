@@ -75,12 +75,25 @@ def main():
     words = cluster.returnFrequentWords()
     candidates = cluster.returnCandidates()
     ptree = cluster.returnPTree()
-    for key, value in ptree.items():
-        #ID_HASH = hashlib.md5(key.encode()).hexdigest()
+    ptree_size = cluster.returnPTreeSize()
+    #print(ptree_size)
+    #print(ptree)
+    #for key, value in candidates.items():
+    #    ID_HASH = hashlib.md5(key.encode()).hexdigest()
+    #    print('-------KEY--------')
+    #    print(ID_HASH)
+    #    print('-------VALUE------')
+    #    print(value)
+    for key, value in ptree['children'].items():
         print('-------KEY--------')
         print(key)
         print('-------VALUE------')
-        print(value)
+        if value['children']:
+            for k, v in value['children'].items():
+                print('*****k******')
+                print(k)
+                print('*****v******')
+                print(v)
 
 
 if __name__ == "__main__":

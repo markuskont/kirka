@@ -112,7 +112,7 @@ class LogCluster():
     def populatePrefixTree(self):
         if self.aggrsup:
             for key, candidate in self.candidates.items():
-                self.ptree = self.insertIntoPrefixTree(self.ptree, key, 0)
+                self.insertIntoPrefixTree(self.ptree, key, 0)
 
     def insertIntoPrefixTree(self, node, ID, index):
         minimum, maximum = self.returnWildcardMinMax(ID, index)
@@ -128,15 +128,12 @@ class LogCluster():
                 child['candidate'] = ID
             node['children'][label] = child
             self.ptreesize += 1
-            print(node)
         else:
             node = node['children'][label]
-
+        index += 1
+        if index < self.candidates[ID]['wordCount']:
+            node = self.insertIntoPrefixTree(node, ID, index)
         return node
-
-        #if index < self.candidates[ID]['wordCount']:
-        #    index += 1
-        #    insertIntoPrefixTree(node, ID, index)
 
     def setLabel(self, ID, index, minimum, maximum):
         label = "%s\n%s" % ( minimum, maximum )
@@ -165,6 +162,9 @@ class LogCluster():
 
     def returnPTree(self):
         return self.ptree if self.aggrsup == True else None
+
+    def returnPTreeSize(self):
+        return self.ptreesize if self.aggrsup == True else None
 
     # Allow --input to be defined globally in init, or per method
     # Methods will use object global if left undefined by user
