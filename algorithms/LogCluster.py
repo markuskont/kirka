@@ -5,14 +5,25 @@
 import os, re, sys
 
 class LogCluster():
-    def __init__(self, support, source=None):
+    def __init__(
+                self,
+                support,
+                source=None,
+                aggrsup=False
+                ):
         # parameters
         self.support    = support
         self.source     = source
+        self.aggrsup    = aggrsup
 
         # Data structures
         self.fwords     = {}
         self.candidates = {}
+
+        if self.aggrsup is True:
+            self.ptree              = {}
+            self.ptree['children']  = {}
+            self.ptreesize          = 0
 
     # FIND FREQUENT WORDS
     def findFrequentWords(self, source=None):
@@ -83,8 +94,7 @@ class LogCluster():
         total = len(wildcards)
         i = 0
         while i < total:
-            w_from  = self.candidates[ID]['wildcards'][i][0]
-            w_to    = self.candidates[ID]['wildcards'][i][1]
+            w_from, w_to = self.returnWildcardMinMax(ID, i)
             if w_from > wildcards[i]:
                 self.candidates[ID]['wildcards'][i][0] = wildcards[i]
             elif w_to < wildcards[i]:
@@ -98,7 +108,52 @@ class LogCluster():
             if candidate['count'] < self.support:
                 del self.candidates[key]
 
+    # AGGREGATE SUPPORTS
+    def populatePrefixTree(self):
+        if self.aggrsup:
+            for key, candidate in self.candidates.items():
+                self.ptree = self.insertIntoPrefixTree(self.ptree, key, 0)
+
+    def insertIntoPrefixTree(self, node, ID, index):
+        minimum, maximum = self.returnWildcardMinMax(ID, index)
+        label = self.setLabel(ID, index, minimum, maximum)
+        if not label in node['children']:
+            child = {}
+            child['min'] = minimum
+            child['max'] = maximum
+            if index < self.candidates[ID]['wordCount']:
+                child['children'] = {}
+                child['word'] = self.candidates[ID]['words'][index]
+            else:
+                child['candidate'] = ID
+            node['children'][label] = child
+            self.ptreesize += 1
+            print(node)
+        else:
+            node = node['children'][label]
+
+        return node
+
+        #if index < self.candidates[ID]['wordCount']:
+        #    index += 1
+        #    insertIntoPrefixTree(node, ID, index)
+
+    def setLabel(self, ID, index, minimum, maximum):
+        label = "%s\n%s" % ( minimum, maximum )
+        if index == self.candidates[ID]['wordCount']:
+            return label
+        else:
+            return label + "\n%s" % ( self.candidates[ID]['words'][index] )
+
     # GLOBAL HELPERS
+    def returnWildcardData(self, ID, index, position):
+        return self.candidates[ID]['wildcards'][index][position]
+
+    def returnWildcardMinMax(self, ID, index):
+        minimum = self.candidates[ID]['wildcards'][index][0]
+        maximum = self.candidates[ID]['wildcards'][index][1]
+        return minimum, maximum
+
     def splitLine(self, line):
         return line.split()
 
@@ -107,6 +162,9 @@ class LogCluster():
 
     def returnCandidates(self):
         return self.candidates
+
+    def returnPTree(self):
+        return self.ptree if self.aggrsup == True else None
 
     # Allow --input to be defined globally in init, or per method
     # Methods will use object global if left undefined by user
