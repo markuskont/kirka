@@ -51,23 +51,26 @@ if not SUPPORT:
     logMsg("Support value not defined", "error")
 
 class LogCluster():
-    def __init__(self, support):
+    def __init__(self, support, source=None):
         # parameters
-        self.support = support
+        self.support    = support
+        self.source     = source
 
         # Data structures
-        self.fwords = {}
+        self.fwords     = {}
         self.candidates = {}
 
     # FIND FREQUENT WORDS
-    def findFrequentWords(self, source):
+    def findFrequentWords(self, source=None):
+        source = self.evalFileInput(source)
         self.findWordsFromFile(source)
         for word, count in self.fwords.copy().items():
             if count < self.support:
                 del self.fwords[word]
 
-    def findWordsFromFile(self, inFile):
-        with open(inFile) as f:
+    def findWordsFromFile(self, source=None):
+        source = self.evalFileInput(source)
+        with open(source) as f:
             for line in f:
                 self.fwords = self.wordsFromLine(line)
 
@@ -83,8 +86,9 @@ class LogCluster():
         return counts
 
     # FIND CANDIDATES
-    def findCandidatesFromFile(self, inFile):
-        with open(inFile) as f:
+    def findCandidatesFromFile(self, source=None):
+        source = self.evalFileInput(source)
+        with open(source) as f:
             for line in f:
                 self.candidateFromLine(line)
 
@@ -150,10 +154,16 @@ class LogCluster():
     def returnCandidates(self):
         return self.candidates
 
+    # Allow --input to be defined globally in init, or per method
+    # Methods will use object global if left undefined by user
+    # For example, generate words from one file and candidates from another
+    def evalFileInput(self, source):
+        return self.source if source == None else source
+
 def main():
-    cluster = LogCluster(SUPPORT)
-    cluster.findFrequentWords(INPUT)
-    cluster.findCandidatesFromFile(INPUT)
+    cluster = LogCluster(SUPPORT, INPUT)
+    cluster.findFrequentWords()
+    cluster.findCandidatesFromFile()
     cluster.findFrequentCandidates()
 
     # DEBUG
