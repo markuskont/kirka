@@ -84,16 +84,16 @@ def main():
     #    print(ID_HASH)
     #    print('-------VALUE------')
     #    print(value)
-    for key, value in ptree['children'].items():
-        print('-------KEY--------')
-        print(key)
-        print('-------VALUE------')
-        if value['children']:
-            for k, v in value['children'].items():
-                print('*****k******')
-                print(k)
-                print('*****v******')
-                print(v)
+    #for key, value in ptree['children'].items():
+    #    print('-------KEY--------')
+    #    print(key)
+    #    print('-------VALUE------')
+    #    if value['children']:
+    #        for k, v in value['children'].items():
+    #            print('*****k******')
+    #            print(k)
+    #            print('*****v******')
+    #            print(v)
 
 
 if __name__ == "__main__":

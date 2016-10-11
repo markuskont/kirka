@@ -112,27 +112,29 @@ class LogCluster():
     def populatePrefixTree(self):
         if self.aggrsup:
             for key, candidate in self.candidates.items():
-                self.insertIntoPrefixTree(self.ptree, key, 0)
+                self.insertIntoPrefixTree(self.ptree, key, candidate, 0)
 
-    def insertIntoPrefixTree(self, node, ID, index):
+    def insertIntoPrefixTree(self, node, ID, candidate,  index):
         minimum, maximum = self.returnWildcardMinMax(ID, index)
         label = self.setLabel(ID, index, minimum, maximum)
+
         if not label in node['children']:
             child = {}
             child['min'] = minimum
             child['max'] = maximum
-            if index < self.candidates[ID]['wordCount']:
+            if index < candidate['wordCount']:
                 child['children'] = {}
-                child['word'] = self.candidates[ID]['words'][index]
+                child['word'] = candidate['words'][index]
             else:
                 child['candidate'] = ID
             node['children'][label] = child
             self.ptreesize += 1
         else:
             node = node['children'][label]
+
         index += 1
-        if index < self.candidates[ID]['wordCount']:
-            node = self.insertIntoPrefixTree(node, ID, index)
+        if index < candidate['wordCount']:
+            node = self.insertIntoPrefixTree(node, ID, candidate, index)
         return node
 
     def setLabel(self, ID, index, minimum, maximum):
