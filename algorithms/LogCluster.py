@@ -109,33 +109,45 @@ class LogCluster():
                 del self.candidates[key]
 
     # AGGREGATE SUPPORTS
-    def populatePrefixTree(self):
+    def aggregateSupports(self):
         if self.aggrsup:
+            keys = []
             for key, candidate in self.candidates.items():
                 self.insertIntoPrefixTree(self.ptree, key, candidate, 0)
+                keys.append(key)
+            for candidate in keys:
+                self.initCandidateSubCluster(candidate)
+                # Populate SubClusters
+
+    def initCandidateSubCluster(self, ID):
+        count = self.candidates[ID]['count']
+        self.candidates[ID]['OldCount'] = count
+        self.candidates[ID]['Count2'] = count
+        self.candidates[ID]['SubClusters'] = {}
 
     def insertIntoPrefixTree(self, node, ID, candidate,  index):
         minimum, maximum = self.returnWildcardMinMax(ID, index)
         label = self.setLabel(ID, index, minimum, maximum)
-
         if not label in node['children']:
-            child = {}
-            child['min'] = minimum
-            child['max'] = maximum
-            if index < candidate['wordCount']:
-                child['children'] = {}
-                child['word'] = candidate['words'][index]
-            else:
-                child['candidate'] = ID
-            node['children'][label] = child
-            self.ptreesize += 1
+            node['children'][label] = self.initPrefixChildNode(ID, candidate, index, minimum, maximum)
         else:
             node = node['children'][label]
-
         index += 1
         if index < candidate['wordCount']:
             node = self.insertIntoPrefixTree(node, ID, candidate, index)
         return node
+
+    def initPrefixChildNode(self, ID, candidate, index, minimum, maximum):
+        child = {}
+        child['min'] = minimum
+        child['max'] = maximum
+        if index < candidate['wordCount']:
+            child['children'] = {}
+            child['word'] = candidate['words'][index]
+        else:
+            child['candidate'] = ID
+        self.ptreesize += 1
+        return child
 
     def setLabel(self, ID, index, minimum, maximum):
         label = "%s\n%s" % ( minimum, maximum )

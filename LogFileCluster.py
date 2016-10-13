@@ -68,7 +68,7 @@ def main():
     cluster = LogCluster(SUPPORT, INPUT, AGGRSUP)
     cluster.findFrequentWords()
     cluster.findCandidatesFromFile()
-    cluster.populatePrefixTree()
+    cluster.aggregateSupports()
     cluster.findFrequentCandidates()
 
     # DEBUG
