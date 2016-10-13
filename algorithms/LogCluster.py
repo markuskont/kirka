@@ -156,14 +156,14 @@ class LogCluster():
         else:
             return label + "\n%s" % ( self.candidates[ID]['words'][index] )
 
-    # GLOBAL HELPERS
-    def returnWildcardData(self, ID, index, position):
-        return self.candidates[ID]['wildcards'][index][position]
-
     def returnWildcardMinMax(self, ID, index):
         minimum = self.candidates[ID]['wildcards'][index][0]
         maximum = self.candidates[ID]['wildcards'][index][1]
         return minimum, maximum
+
+    # GLOBAL HELPERS
+    def returnWildcardData(self, ID, index, position):
+        return self.candidates[ID]['wildcards'][index][position]
 
     def splitLine(self, line):
         return line.split()
