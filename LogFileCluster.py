@@ -4,6 +4,7 @@
 
 import hashlib
 import argparse
+import json
 from algorithms.LogCluster import *
 
 MAN_SUPPORT = """
@@ -51,6 +52,9 @@ def parse_arguments():
 
     return args
 
+def dumpAsJSON(dictionary):
+    return json.dumps(dictionary, sort_keys=False, indent=2)
+
 ARGS = parse_arguments()
 try:
     INPUT=os.path.abspath(ARGS.input)
@@ -66,6 +70,7 @@ if not SUPPORT:
 
 def main():
     cluster = LogCluster(SUPPORT, INPUT, AGGRSUP)
+    cluster.findWordsFromFile()
     cluster.findFrequentWords()
     cluster.findCandidatesFromFile()
     cluster.aggregateSupports()
@@ -76,24 +81,14 @@ def main():
     candidates = cluster.returnCandidates()
     ptree = cluster.returnPTree()
     ptree_size = cluster.returnPTreeSize()
-    #print(ptree_size)
-    #print(ptree)
+    print(dumpAsJSON(ptree))
+    #print(dumpAsJSON(ptree))
     #for key, value in candidates.items():
     #    ID_HASH = hashlib.md5(key.encode()).hexdigest()
     #    print('-------KEY--------')
     #    print(ID_HASH)
     #    print('-------VALUE------')
     #    print(value)
-    #for key, value in ptree['children'].items():
-    #    print('-------KEY--------')
-    #    print(key)
-    #    print('-------VALUE------')
-    #    if value['children']:
-    #        for k, v in value['children'].items():
-    #            print('*****k******')
-    #            print(k)
-    #            print('*****v******')
-    #            print(v)
 
 
 if __name__ == "__main__":

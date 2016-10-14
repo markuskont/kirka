@@ -26,18 +26,16 @@ class LogCluster():
             self.ptreesize          = 0
 
     # FIND FREQUENT WORDS
-    def findFrequentWords(self, source=None):
-        source = self.evalFileInput(source)
-        self.findWordsFromFile(source)
-        for word, count in self.fwords.copy().items():
-            if count < self.support:
-                del self.fwords[word]
-
     def findWordsFromFile(self, source=None):
         source = self.evalFileInput(source)
         with open(source) as f:
             for line in f:
                 self.fwords = self.wordsFromLine(line)
+
+    def findFrequentWords(self):
+        for word, count in self.fwords.copy().items():
+            if count < self.support:
+                del self.fwords[word]
 
     def wordsFromLine(self, line):
         return self.incrementCounter(self.splitLine(line), self.fwords)
@@ -58,7 +56,7 @@ class LogCluster():
                 self.candidateFromLine(line)
 
     def candidateFromLine(self, line):
-        candidate, wildcards, varnum = self.compareLineWithFrequentWords(line)
+        candidate, wildcards = self.compareLineWithFrequentWords(line)
         if candidate:
             candidate_id = '\n'.join(candidate)
             if not candidate_id in self.candidates:
@@ -78,7 +76,8 @@ class LogCluster():
                 varnum = 0
             else:
                 varnum += 1
-        return candidate, wildcards, varnum
+        wildcards.append(varnum)
+        return candidate, wildcards
 
     def initiateCandidate(self, words, wildcards):
         structure = {}
@@ -111,19 +110,50 @@ class LogCluster():
     # AGGREGATE SUPPORTS
     def aggregateSupports(self):
         if self.aggrsup:
-            keys = []
-            for key, candidate in self.candidates.items():
-                self.insertIntoPrefixTree(self.ptree, key, candidate, 0)
-                keys.append(key)
-            for candidate in keys:
-                self.initCandidateSubCluster(candidate)
-                # Populate SubClusters
+            for ID, candidate in self.candidates.items():
+                self.insertIntoPrefixTree(self.ptree, ID, candidate, 0)
+            #for ID, candidate in self.candidates.items():
+            #    self.initCandidateSubCluster(ID)
+            #    self.populateCandidateSubCluster(self.ptree, ID, candidate, 0, 0, 0)
+            #    if self.candidates[ID]['SubClusters']:
+            #        for key2, subcluster in self.candidates[ID]['SubClusters'].items():
+            #            self.candidates[ID]['Count2'] += self.candidates[key2]['count']
 
     def initCandidateSubCluster(self, ID):
         count = self.candidates[ID]['count']
         self.candidates[ID]['OldCount'] = count
         self.candidates[ID]['Count2'] = count
         self.candidates[ID]['SubClusters'] = {}
+
+    def populateCandidateSubCluster(self, node, ID, candidate, index, minimum, maximum):
+        candmin, candmax = self.returnWildcardMinMax(ID, index)
+        children = node['children']
+        #print(index)
+        for child, data in children.items():
+            #print('---------------')
+            #print(candidate['wordCount'])
+            #print(index)
+            #print(data)
+            node = children[child]
+            #print(node)
+
+            if index == candidate['wordCount']:
+                if 'candidate' in child:
+                    totalmin = children['min'] + minumum
+                    totalmax = children['max'] + maximum
+                    if candmin > totalmin or candmax < totalmax:
+                        continue
+                    cand2 = children['candidate']
+                    if ID != cand2:
+                        self.candidates['SubClusters'][cand2] = 1
+                else:
+                    populateCandidateSubCluster()
+                continue
+
+            if 'candidate' in node:
+                continue
+
+
 
     def insertIntoPrefixTree(self, node, ID, candidate,  index):
         minimum, maximum = self.returnWildcardMinMax(ID, index)
@@ -132,9 +162,8 @@ class LogCluster():
             node['children'][label] = self.initPrefixChildNode(ID, candidate, index, minimum, maximum)
         else:
             node = node['children'][label]
-        index += 1
         if index < candidate['wordCount']:
-            node = self.insertIntoPrefixTree(node, ID, candidate, index)
+            node = self.insertIntoPrefixTree(node, ID, candidate, index + 1)
         return node
 
     def initPrefixChildNode(self, ID, candidate, index, minimum, maximum):
