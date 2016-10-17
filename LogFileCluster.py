@@ -6,6 +6,7 @@ import hashlib
 import argparse
 import json
 from algorithms.LogCluster import *
+from common.print import *
 
 MAN_SUPPORT = """
 Find clusters (line patterns) that match at least <support> lines in input
@@ -52,8 +53,8 @@ def parse_arguments():
 
     return args
 
-def dumpAsJSON(dictionary):
-    return json.dumps(dictionary, sort_keys=False, indent=2)
+#def dumpAsJSON(dictionary):
+#    return json.dumps(dictionary, sort_keys=False, indent=2)
 
 ARGS = parse_arguments()
 try:
@@ -81,14 +82,13 @@ def main():
     candidates = cluster.returnCandidates()
     ptree = cluster.returnPTree()
     ptree_size = cluster.returnPTreeSize()
-    print(dumpAsJSON(ptree))
     #print(dumpAsJSON(ptree))
-    #for key, value in candidates.items():
-    #    ID_HASH = hashlib.md5(key.encode()).hexdigest()
-    #    print('-------KEY--------')
-    #    print(ID_HASH)
-    #    print('-------VALUE------')
-    #    print(value)
+    for key, value in candidates.items():
+        ID_HASH = hashlib.md5(key.encode()).hexdigest()
+        print('-------KEY--------')
+        print(ID_HASH)
+        print('-------VALUE------')
+        print(value)
 
 
 if __name__ == "__main__":

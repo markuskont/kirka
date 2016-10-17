@@ -3,6 +3,10 @@
 # see - http://ristov.github.io/logcluster/
 
 import os, re, sys
+import json
+
+def dumpAsJSON(dictionary):
+    return json.dumps(dictionary, sort_keys=False, indent=2)
 
 class LogCluster():
     def __init__(
@@ -112,12 +116,12 @@ class LogCluster():
         if self.aggrsup:
             for ID, candidate in self.candidates.items():
                 self.insertIntoPrefixTree(self.ptree, ID, candidate, 0)
-            #for ID, candidate in self.candidates.items():
-            #    self.initCandidateSubCluster(ID)
-            #    self.populateCandidateSubCluster(self.ptree, ID, candidate, 0, 0, 0)
-            #    if self.candidates[ID]['SubClusters']:
-            #        for key2, subcluster in self.candidates[ID]['SubClusters'].items():
-            #            self.candidates[ID]['Count2'] += self.candidates[key2]['count']
+            for ID, candidate in self.candidates.items():
+                self.initCandidateSubCluster(ID)
+                self.populateCandidateSubCluster(self.ptree, ID, candidate, 0, 0, 0)
+                #if self.candidates[ID]['SubClusters']:
+                #    for key2, subcluster in self.candidates[ID]['SubClusters'].items():
+                #        self.candidates[ID]['Count2'] += self.candidates[key2]['count']
 
     def initCandidateSubCluster(self, ID):
         count = self.candidates[ID]['count']
@@ -125,35 +129,34 @@ class LogCluster():
         self.candidates[ID]['Count2'] = count
         self.candidates[ID]['SubClusters'] = {}
 
-    def populateCandidateSubCluster(self, node, ID, candidate, index, minimum, maximum):
+    def populateCandidateSubCluster(self, data, ID, candidate, index, minimum, maximum):
         candmin, candmax = self.returnWildcardMinMax(ID, index)
-        children = node['children']
-        #print(index)
+        children = data['children']
+        wordcount = candidate['wordCount']
         for child, data in children.items():
-            #print('---------------')
-            #print(candidate['wordCount'])
-            #print(index)
-            #print(data)
-            node = children[child]
-            #print(node)
+            totalmin = data['min'] + minimum
+            totalmax = data['max'] + maximum
 
-            if index == candidate['wordCount']:
-                if 'candidate' in child:
-                    totalmin = children['min'] + minumum
-                    totalmax = children['max'] + maximum
+            if index == wordcount:
+                if 'candidate' in data:
                     if candmin > totalmin or candmax < totalmax:
                         continue
-                    cand2 = children['candidate']
+                    cand2 = data['candidate']
                     if ID != cand2:
-                        self.candidates['SubClusters'][cand2] = 1
+                        self.candidates[ID]['SubClusters'][cand2] = 1
                 else:
-                    populateCandidateSubCluster()
+                    self.populateCandidateSubCluster(data, ID, candidate, index, totalmin + 1, totalmax + 1)
                 continue
 
-            if 'candidate' in node:
+            if 'candidate' in data:
                 continue
-
-
+            if candmax < totalmax:
+                continue
+            if candmin > totalmin or candidate['words'][index] != data['word']:
+                self.populateCandidateSubCluster(data, ID, candidate, index, totalmin + 1, totalmax + 1)
+                continue
+            self.populateCandidateSubCluster(data, ID, candidate, index + 1, 0, 0)
+            self.populateCandidateSubCluster(data, ID, candidate, index, totalmin + 1, totalmax + 1)
 
     def insertIntoPrefixTree(self, node, ID, candidate,  index):
         minimum, maximum = self.returnWildcardMinMax(ID, index)
