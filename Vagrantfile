@@ -56,7 +56,7 @@ $SYSLOGNG = <<SCRIPT
 SCRIPT
 
 $PACKAGES = <<SCRIPT
-  sudo apt-get install python-daemon jq -y
+  sudo apt-get install python-daemon jq htop tmux -y
 SCRIPT
 
 boxes = [
