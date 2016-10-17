@@ -119,9 +119,12 @@ class LogCluster():
             for ID, candidate in self.candidates.items():
                 self.initCandidateSubCluster(ID)
                 self.populateCandidateSubCluster(self.ptree, ID, candidate, 0, 0, 0)
-                #if self.candidates[ID]['SubClusters']:
-                #    for key2, subcluster in self.candidates[ID]['SubClusters'].items():
-                #        self.candidates[ID]['Count2'] += self.candidates[key2]['count']
+                if self.candidates[ID]['SubClusters']:
+                    for ID2 in self.candidates[ID]['SubClusters']:
+                        self.candidates[ID]['Count2'] += self.candidates[ID2]['count']
+            for ID in self.candidates:
+                self.candidates[ID]['count'] = self.candidates[ID]['Count2']
+                del self.candidates[ID]['Count2']
 
     def initCandidateSubCluster(self, ID):
         count = self.candidates[ID]['count']
@@ -136,7 +139,6 @@ class LogCluster():
         for child, data in children.items():
             totalmin = data['min'] + minimum
             totalmax = data['max'] + maximum
-
             if index == wordcount:
                 if 'candidate' in data:
                     if candmin > totalmin or candmax < totalmax:
@@ -147,7 +149,6 @@ class LogCluster():
                 else:
                     self.populateCandidateSubCluster(data, ID, candidate, index, totalmin + 1, totalmax + 1)
                 continue
-
             if 'candidate' in data:
                 continue
             if candmax < totalmax:
