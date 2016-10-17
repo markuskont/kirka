@@ -53,9 +53,6 @@ def parse_arguments():
 
     return args
 
-#def dumpAsJSON(dictionary):
-#    return json.dumps(dictionary, sort_keys=False, indent=2)
-
 ARGS = parse_arguments()
 try:
     INPUT=os.path.abspath(ARGS.input)
@@ -82,7 +79,7 @@ def main():
     candidates = cluster.returnCandidates()
     ptree = cluster.returnPTree()
     ptree_size = cluster.returnPTreeSize()
-    #print(dumpAsJSON(ptree))
+    print(dumpAsJSON(ptree))
     for key, value in candidates.items():
         ID_HASH = hashlib.md5(key.encode()).hexdigest()
         print('-------KEY--------')
