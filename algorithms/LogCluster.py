@@ -13,12 +13,16 @@ class LogCluster():
                 self,
                 support,
                 source=None,
-                aggrsup=False
+                aggrsup=False,
+                wweight=None,
+                weightf=1
                 ):
         # parameters
         self.support    = support
         self.source     = source
         self.aggrsup    = aggrsup
+        self.wweight    = wweight
+        self.weightf    = weightf if isinstance(weightf, int) else 1
 
         # Data structures
         self.fwords     = {}
@@ -207,6 +211,7 @@ class LogCluster():
     def splitLine(self, line):
         return line.split()
 
+    # return instance data structure, mainly for debug
     def returnFrequentWords(self):
         return self.fwords
 
@@ -218,6 +223,9 @@ class LogCluster():
 
     def returnPTreeSize(self):
         return self.ptreesize if self.aggrsup == True else None
+
+    def returnWweightParams(self):
+        return self.wweight, self.weightf if self.wweight and self.weightf else None
 
     # Allow --input to be defined globally in init, or per method
     # Methods will use object global if left undefined by user
