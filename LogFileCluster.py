@@ -149,7 +149,7 @@ def main():
     cluster.findCandidatesFromFile()
     cluster.aggregateSupports()
     cluster.findFrequentCandidates()
-    #cluster.joinCandidates()
+    cluster.joinCandidates()
 
     # DEBUG
     words = cluster.returnFrequentWords()
@@ -158,17 +158,17 @@ def main():
     ptree_size = cluster.returnPTreeSize()
     weight, function = cluster.returnWweightParams()
     fword_deps = cluster.returnFwordDeps()
-    
-    for key, value in candidates.items():
-        ID_HASH = hashlib.md5(key.encode()).hexdigest()
-        print('-------KEY--------')
-        print(ID_HASH)
-        print('-------VALUE------')
-        print(value)
+
+    #for key, value in candidates.items():
+    #    ID_HASH = hashlib.md5(key.encode()).hexdigest()
+    #    print('-------KEY--------')
+    #    print(ID_HASH)
+    #    print('-------VALUE------')
+    #    print(value)
 
     print(weight)
     print(function)
-    print(dumpAsJSON(fword_deps))
+    #print(dumpAsJSON(candidates))
 
 if __name__ == "__main__":
     main()

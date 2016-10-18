@@ -65,13 +65,15 @@ class LogCluster():
         with open(source) as f:
             for line in f:
                 self.candidateFromLine(line)
+        if self.wweight:
+            self.convertFwordDepsToDecimal()
         return self
 
     def candidateFromLine(self, line):
         candidate, wildcards = self.compareLineWithFrequentWords(line)
         if candidate:
             candidate_id = '\n'.join(candidate)
-            if self.wweight != None:
+            if self.wweight:
                 self.fillFwordDepTable(candidate)
             if not candidate_id in self.candidates:
                 self.candidates[candidate_id] = self.initiateCandidate(candidate, wildcards)
@@ -214,6 +216,18 @@ class LogCluster():
                     self.fword_deps[word][word2] = self.fword_deps[word].get(word2, 0) + 1
             else:
                 self.fword_deps[word] = {}
+
+    # divide word dependency count with overall word occurrence count
+    def convertFwordDepsToDecimal(self):
+        for word in self.fword_deps:
+            for word2 in self.fword_deps[word]:
+                self.fword_deps[word][word2] /= self.fwords[word]
+
+    def joinCandidates(self):
+        if self.wweight:
+            pass
+            #for ID, candidate in sorted(self.candidates.items(), key=lambda k, v: v, k):
+            #    print(candidate)
 
     # GLOBAL HELPERS
     def returnWildcardData(self, ID, index, position):
