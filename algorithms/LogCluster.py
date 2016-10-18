@@ -35,21 +35,20 @@ class LogCluster():
         with open(source) as f:
             for line in f:
                 self.fwords = self.wordsFromLine(line)
+        return self
 
     def findFrequentWords(self):
         for word, count in self.fwords.copy().items():
             if count < self.support:
                 del self.fwords[word]
+        return self
 
     def wordsFromLine(self, line):
         return self.incrementCounter(self.splitLine(line), self.fwords)
 
     def incrementCounter(self, array, counts):
         for item in array:
-            if not item in counts:
-                counts[item] = 1
-            else:
-                counts[item] += 1
+            counts[item] = counts.get(item, 0) + 1
         return counts
 
     # FIND CANDIDATES
@@ -58,6 +57,7 @@ class LogCluster():
         with open(source) as f:
             for line in f:
                 self.candidateFromLine(line)
+        return self
 
     def candidateFromLine(self, line):
         candidate, wildcards = self.compareLineWithFrequentWords(line)
@@ -110,6 +110,7 @@ class LogCluster():
         for key, candidate in self.candidates.copy().items():
             if candidate['count'] < self.support:
                 del self.candidates[key]
+        return self
 
     # AGGREGATE SUPPORTS
     def aggregateSupports(self):
@@ -125,6 +126,7 @@ class LogCluster():
             for ID in self.candidates:
                 self.candidates[ID]['count'] = self.candidates[ID]['Count2']
                 del self.candidates[ID]['Count2']
+        return self
 
     def initCandidateSubCluster(self, ID):
         count = self.candidates[ID]['count']
@@ -198,6 +200,10 @@ class LogCluster():
     def returnWildcardData(self, ID, index, position):
         return self.candidates[ID]['wildcards'][index][position]
 
+    # Split lines with standard split() if separator left undefined (default to whitespace)
+    # alternatively, use more expensive re.split() if separator is defined
+    # process subsequent line as JSON if @cee cookie is found
+    # TODO
     def splitLine(self, line):
         return line.split()
 
