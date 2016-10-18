@@ -157,7 +157,8 @@ def main():
     ptree = cluster.returnPTree()
     ptree_size = cluster.returnPTreeSize()
     weight, function = cluster.returnWweightParams()
-    #print(dumpAsJSON(ptree))
+    fword_deps = cluster.returnFwordDeps()
+    
     for key, value in candidates.items():
         ID_HASH = hashlib.md5(key.encode()).hexdigest()
         print('-------KEY--------')
@@ -167,6 +168,7 @@ def main():
 
     print(weight)
     print(function)
+    print(dumpAsJSON(fword_deps))
 
 if __name__ == "__main__":
     main()

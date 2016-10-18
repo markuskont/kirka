@@ -21,8 +21,7 @@ class LogCluster():
         self.support    = support
         self.source     = source
         self.aggrsup    = aggrsup
-        self.wweight    = wweight
-        self.weightf    = weightf if isinstance(weightf, int) else 1
+        self.wweight    = wweight if isinstance(wweight, float) else None
 
         # Data structures
         self.fwords     = {}
@@ -32,6 +31,11 @@ class LogCluster():
             self.ptree              = {}
             self.ptree['children']  = {}
             self.ptreesize          = 0
+
+        if isinstance(self.wweight, float):
+            self.weightf            = weightf if isinstance(weightf, int) else 1
+            self.fword_deps         = {}
+
 
     # FIND FREQUENT WORDS
     def findWordsFromFile(self, source=None):
@@ -67,6 +71,8 @@ class LogCluster():
         candidate, wildcards = self.compareLineWithFrequentWords(line)
         if candidate:
             candidate_id = '\n'.join(candidate)
+            if self.wweight != None:
+                self.fillFwordDepTable(candidate)
             if not candidate_id in self.candidates:
                 self.candidates[candidate_id] = self.initiateCandidate(candidate, wildcards)
             else:
@@ -200,6 +206,15 @@ class LogCluster():
         maximum = self.candidates[ID]['wildcards'][index][1]
         return minimum, maximum
 
+    # JOIN CLUSTERS
+    def fillFwordDepTable(self, candidate):
+        for word in candidate:
+            if word in self.fword_deps:
+                for word2 in candidate:
+                    self.fword_deps[word][word2] = self.fword_deps[word].get(word2, 0) + 1
+            else:
+                self.fword_deps[word] = {}
+
     # GLOBAL HELPERS
     def returnWildcardData(self, ID, index, position):
         return self.candidates[ID]['wildcards'][index][position]
@@ -226,6 +241,9 @@ class LogCluster():
 
     def returnWweightParams(self):
         return self.wweight, self.weightf if self.wweight and self.weightf else None
+
+    def returnFwordDeps(self):
+        return self.fword_deps if self.wweight != None else None
 
     # Allow --input to be defined globally in init, or per method
     # Methods will use object global if left undefined by user
