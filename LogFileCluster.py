@@ -148,18 +148,22 @@ def main():
     cluster.findFrequentWords()
     cluster.findCandidatesFromFile()
     cluster.aggregateSupports()
+
+    candidates = cluster.returnCandidates()
+
     cluster.findFrequentCandidates()
-    cluster.joinCandidates()
+    cluster.findClusters()
 
     # DEBUG
     words = cluster.returnFrequentWords()
-    candidates = cluster.returnCandidates()
+    fcandidates = cluster.returnCandidates()
+    clusters = cluster.returnClusters()
     ptree = cluster.returnPTree()
     ptree_size = cluster.returnPTreeSize()
     weight, function = cluster.returnWweightParams()
     fword_deps = cluster.returnFwordDeps()
 
-    for key, value in candidates.items():
+    for key, value in clusters.items():
         ID_HASH = hashlib.md5(key.encode()).hexdigest()
         print('-------KEY--------')
         print(ID_HASH)

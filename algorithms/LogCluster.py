@@ -26,6 +26,7 @@ class LogCluster():
         # Data structures
         self.fwords     = {}
         self.candidates = {}
+        self.clusters   = {}
 
         if self.aggrsup is True:
             self.ptree              = {}
@@ -76,7 +77,7 @@ class LogCluster():
             if self.wweight:
                 self.fillFwordDepTable(candidate)
             if not candidate_id in self.candidates:
-                self.candidates[candidate_id] = self.initiateCandidate(candidate, wildcards)
+                self.candidates[candidate_id] = self.initiateCandidate(candidate)
                 self.candidates[candidate_id] = self.populateWildcards(wildcards, self.candidates[candidate_id])
             else:
                 self.modifyCandidate(candidate_id, wildcards)
@@ -96,14 +97,12 @@ class LogCluster():
         wildcards.append(varnum)
         return candidate, wildcards
 
-    def initiateCandidate(self, words, wildcards):
+    def initiateCandidate(self, words):
         structure = {}
         structure['words'] = words
         structure['wordCount'] = len(words)
         structure['count'] = 1
         structure['wildcards'] = []
-        #for wildcard in wildcards:
-        #    structure['wildcards'].append([wildcard, wildcard])
         return structure
 
     def populateWildcards(self, wildcards, structure):
@@ -129,6 +128,12 @@ class LogCluster():
         for key, candidate in self.candidates.copy().items():
             if candidate['count'] < self.support:
                 del self.candidates[key]
+
+    def findClusters(self):
+        if self.wweight:
+            self.joinCandidates()
+        else:
+            self.clusters = self.candidates
         return self
 
     # AGGREGATE SUPPORTS
@@ -234,7 +239,7 @@ class LogCluster():
         if self.wweight:
             for ID, candidate in self.candidates.items():
                 self.assessWordWeight(ID, candidate)
-                #self.joinCandidate(ID, candidate)
+                self.joinCandidate(ID, candidate)
 
     def assessWordWeight(self, ID, candidate):
         switcher = {
@@ -267,19 +272,19 @@ class LogCluster():
 
     def joinCandidate(self, ID, candidate):
         wordcount = candidate['wordCount']
-        candidate = []
+        newCandidate = []
         i = 0
         while i < wordcount:
             if candidate['Weights'][i] >= self.wweight:
-                words.append(candidate['words'][i])
+                newCandidate.append(candidate['words'][i])
             else:
-                words.append("")
+                newCandidate.append("")
             i += 1
-        candidate_id = '\n'.join(candidate)
+        candidate_id = '\n'.join(newCandidate)
         if not candidate_id in self.candidates:
-            pass
-        else:
-            pass
+            self.clusters[candidate_id] = self.initiateCandidate(newCandidate)
+            self.clusters[candidate_id]['wildcards'] = self.candidates[ID]['wildcards']
+
 
     # GLOBAL HELPERS
     def returnWildcardData(self, ID, index, position):
@@ -298,6 +303,9 @@ class LogCluster():
 
     def returnCandidates(self):
         return self.candidates
+
+    def returnClusters(self):
+        return self.clusters
 
     def returnPTree(self):
         return self.ptree if self.aggrsup == True else None
