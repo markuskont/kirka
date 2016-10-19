@@ -77,6 +77,7 @@ class LogCluster():
                 self.fillFwordDepTable(candidate)
             if not candidate_id in self.candidates:
                 self.candidates[candidate_id] = self.initiateCandidate(candidate, wildcards)
+                self.candidates[candidate_id] = self.populateWildcards(wildcards, self.candidates[candidate_id])
             else:
                 self.modifyCandidate(candidate_id, wildcards)
 
@@ -101,9 +102,15 @@ class LogCluster():
         structure['wordCount'] = len(words)
         structure['count'] = 1
         structure['wildcards'] = []
+        #for wildcard in wildcards:
+        #    structure['wildcards'].append([wildcard, wildcard])
+        return structure
+
+    def populateWildcards(self, wildcards, structure):
         for wildcard in wildcards:
             structure['wildcards'].append([wildcard, wildcard])
         return structure
+
 
     def modifyCandidate(self, ID, wildcards):
         total = len(wildcards)
@@ -225,9 +232,54 @@ class LogCluster():
 
     def joinCandidates(self):
         if self.wweight:
+            for ID, candidate in self.candidates.items():
+                self.assessWordWeight(ID, candidate)
+                #self.joinCandidate(ID, candidate)
+
+    def assessWordWeight(self, ID, candidate):
+        switcher = {
+            1: self.weightf1,
+            2: self.weightf2,
+            3: self.weightf3,
+            4: self.weightf4
+        }
+        func = switcher.get(self.weightf)
+        return func(ID, candidate)
+
+    def weightf1(self, ID, candidate):
+        words = candidate['words']
+        total = candidate['wordCount']
+        self.candidates[ID]['Weights'] = []
+        for word in words:
+            weight = 0
+            for word2 in words:
+                weight += self.fword_deps[word2][word]
+            self.candidates[ID]['Weights'].append(weight/total)
+
+    def weightf2(self, ID, candidate):
+        return "two: %s" % (candidate)
+
+    def weightf3(self, ID, candidate):
+        return "three: %s" % (candidate)
+
+    def weightf4(self, ID, candidate):
+        return "four: %s" % (candidate)
+
+    def joinCandidate(self, ID, candidate):
+        wordcount = candidate['wordCount']
+        candidate = []
+        i = 0
+        while i < wordcount:
+            if candidate['Weights'][i] >= self.wweight:
+                words.append(candidate['words'][i])
+            else:
+                words.append("")
+            i += 1
+        candidate_id = '\n'.join(candidate)
+        if not candidate_id in self.candidates:
             pass
-            #for ID, candidate in sorted(self.candidates.items(), key=lambda k, v: v, k):
-            #    print(candidate)
+        else:
+            pass
 
     # GLOBAL HELPERS
     def returnWildcardData(self, ID, index, position):

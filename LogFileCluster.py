@@ -159,12 +159,12 @@ def main():
     weight, function = cluster.returnWweightParams()
     fword_deps = cluster.returnFwordDeps()
 
-    #for key, value in candidates.items():
-    #    ID_HASH = hashlib.md5(key.encode()).hexdigest()
-    #    print('-------KEY--------')
-    #    print(ID_HASH)
-    #    print('-------VALUE------')
-    #    print(value)
+    for key, value in candidates.items():
+        ID_HASH = hashlib.md5(key.encode()).hexdigest()
+        print('-------KEY--------')
+        print(ID_HASH)
+        print('-------VALUE------')
+        print(value)
 
     print(weight)
     print(function)
