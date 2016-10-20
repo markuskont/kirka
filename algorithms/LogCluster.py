@@ -4,9 +4,13 @@
 
 import os, re, sys
 import json
+import hashlib
 
 def dumpAsJSON(dictionary):
     return json.dumps(dictionary, sort_keys=False, indent=2)
+
+def hashString(string):
+    return hashlib.md5(string.encode()).hexdigest()
 
 class LogCluster():
     def __init__(
@@ -77,7 +81,7 @@ class LogCluster():
             if self.wweight:
                 self.fillFwordDepTable(candidate)
             if not candidate_id in self.candidates:
-                self.candidates[candidate_id] = self.initiateCandidate(candidate)
+                self.candidates[candidate_id] = self.initiateCandidate(candidate, 1)
                 self.candidates[candidate_id] = self.populateWildcards(wildcards, self.candidates[candidate_id])
             else:
                 self.modifyCandidate(candidate_id, wildcards)
@@ -97,11 +101,11 @@ class LogCluster():
         wildcards.append(varnum)
         return candidate, wildcards
 
-    def initiateCandidate(self, words):
+    def initiateCandidate(self, words, count):
         structure = {}
         structure['words'] = words
         structure['wordCount'] = len(words)
-        structure['count'] = 1
+        structure['count'] = count
         structure['wildcards'] = []
         return structure
 
@@ -215,12 +219,8 @@ class LogCluster():
         else:
             return label + "\n%s" % ( self.candidates[ID]['words'][index] )
 
-    def returnWildcardMinMax(self, ID, index):
-        minimum = self.candidates[ID]['wildcards'][index][0]
-        maximum = self.candidates[ID]['wildcards'][index][1]
-        return minimum, maximum
-
     # JOIN CLUSTERS
+    # This is invoked in candidate creation phase
     def fillFwordDepTable(self, candidate):
         for word in candidate:
             if word in self.fword_deps:
@@ -235,6 +235,7 @@ class LogCluster():
             for word2 in self.fword_deps[word]:
                 self.fword_deps[word][word2] /= self.fwords[word]
 
+    # This is invoked after candidate creation, in the final step for generating clusters
     def joinCandidates(self):
         if self.wweight:
             for ID, candidate in self.candidates.items():
@@ -274,21 +275,54 @@ class LogCluster():
         wordcount = candidate['wordCount']
         newCandidate = []
         i = 0
-        while i < wordcount:
+        for i in range(wordcount):
             if candidate['Weights'][i] >= self.wweight:
                 newCandidate.append(candidate['words'][i])
             else:
                 newCandidate.append("")
-            i += 1
         candidate_id = '\n'.join(newCandidate)
-        if not candidate_id in self.candidates:
-            self.clusters[candidate_id] = self.initiateCandidate(newCandidate)
-            self.clusters[candidate_id]['wildcards'] = self.candidates[ID]['wildcards']
+        newCandidate = self.convertEmptyWords(newCandidate)
+        if not candidate_id in self.clusters:
+            self.clusters[candidate_id] = self.initiateCandidate(newCandidate, 0)
+            self.clusters[candidate_id]['wildcards'] = candidate['wildcards']
+        self.appendJoinedWord(candidate, newCandidate, candidate_id)
+        for i in range(wordcount + 1):
+            candmin, candmax = self.returnWildcardMinMax(ID, i)
+            clustmin, clustmax = self.returnClusterWildcardMinMax(candidate_id, i)
+            if clustmin > candmin:
+                self.clusters[candidate_id]['wildcards'][i][0] = candmin
+            if clustmax < candmax:
+                self.clusters[candidate_id]['wildcards'][i][1] = candmax
+        self.clusters[candidate_id]['count'] += candidate['count']
 
+    def convertEmptyWords(self, candidate):
+        i = 0
+        for word in candidate:
+            if len(word) == 0:
+                candidate[i] = {}
+            i +=1
+        return candidate
+
+    def appendJoinedWord(self, candidate, newCandidate, ID):
+        i = 0
+        for word in newCandidate:
+            if isinstance(word, dict):
+                self.clusters[ID]['words'][i][candidate['words'][i]] = 1
+            i += 1
 
     # GLOBAL HELPERS
     def returnWildcardData(self, ID, index, position):
         return self.candidates[ID]['wildcards'][index][position]
+
+    def returnWildcardMinMax(self, ID, index):
+        minimum = self.candidates[ID]['wildcards'][index][0]
+        maximum = self.candidates[ID]['wildcards'][index][1]
+        return minimum, maximum
+
+    def returnClusterWildcardMinMax(self, ID, index):
+        minimum = self.clusters[ID]['wildcards'][index][0]
+        maximum = self.clusters[ID]['wildcards'][index][1]
+        return minimum, maximum
 
     # Split lines with standard split() if separator left undefined (default to whitespace)
     # alternatively, use more expensive re.split() if separator is defined
