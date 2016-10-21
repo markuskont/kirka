@@ -144,35 +144,38 @@ def main():
                         WWEIGHT,
                         WEIGHTF
                         )
+    print('Finding words')
     cluster.findWordsFromFile()
+    print('Done')
+    print('Finding frequent words')
     cluster.findFrequentWords()
+    print('Number of F Words: ', cluster.returnFrequentWordsLength())
+    print('Done')
+    print('Finding candidates')
     cluster.findCandidatesFromFile()
+    print('Number of Candidates: ', cluster.returnCandidatesLength())
+    print('Done')
+    print('Aggregating supports')
     cluster.aggregateSupports()
-
-    candidates = cluster.returnCandidates()
-
+    print('Ptree size: ', cluster.returnPTreeSize())
+    print('Done')
+    print('Finding frequent candidates')
     cluster.findFrequentCandidates()
+    print('Number of Candidates: ', cluster.returnCandidatesLength())
+    print('Done')
+    print('Finding clusters')
     cluster.findClusters()
+    print('Number of Clusters: ', cluster.returnClustersLength())
+    print('Done')
 
     # DEBUG
-    words = cluster.returnFrequentWords()
-    fcandidates = cluster.returnCandidates()
     clusters = cluster.returnClusters()
-    ptree = cluster.returnPTree()
-    ptree_size = cluster.returnPTreeSize()
-    weight, function = cluster.returnWweightParams()
-    fword_deps = cluster.returnFwordDeps()
-
-    for key, value in clusters.items():
-        ID_HASH = hashlib.md5(key.encode()).hexdigest()
-        print('-------KEY--------')
-        print(ID_HASH)
-        print('-------VALUE------')
-        print(value)
-
-    print(weight)
-    print(function)
-    #print(dumpAsJSON(candidates))
+    #for key, value in clusters.items():
+    #    ID_HASH = hashlib.md5(key.encode()).hexdigest()
+    #    print('-------KEY--------')
+    #    print(ID_HASH)
+    #    print('-------VALUE------')
+    #    print(value)
 
 if __name__ == "__main__":
     main()

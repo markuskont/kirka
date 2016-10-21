@@ -137,7 +137,7 @@ class LogCluster():
         if self.wweight:
             self.joinCandidates()
         else:
-            self.clusters = self.candidates
+            self.cluster = self.candidates
         return self
 
     # AGGREGATE SUPPORTS
@@ -374,11 +374,20 @@ class LogCluster():
     def returnFrequentWords(self):
         return self.fwords
 
+    def returnFrequentWordsLength(self):
+        return len(self.fwords)
+
     def returnCandidates(self):
         return self.candidates
 
+    def returnCandidatesLength(self):
+        return len(self.candidates)
+
     def returnClusters(self):
         return self.clusters
+
+    def returnClustersLength(self):
+        return len(self.clusters)
 
     def returnPTree(self):
         return self.ptree if self.aggrsup == True else None
