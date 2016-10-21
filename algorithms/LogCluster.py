@@ -285,10 +285,27 @@ class LogCluster():
         self.candidates[ID]['Weights'] = []
 
         for word in words:
-            self.candidates[ID]['Weights'].append(0.5)
+            weight = 0
+            for word2 in words:
+                weight += (self.fword_deps[word2][word] + self.fword_deps[word][word2])
+            self.candidates[ID]['Weights'].append(weight/(total*2))
 
     def weightf4(self, ID, candidate):
-        return "four: %s" % (candidate)
+        words = candidate['words']
+        total = candidate['wordCount']
+        self.candidates[ID]['Weights'] = []
+        weights = self.listToDict(words)
+        for word in words:
+            if not total:
+                weights[word] = 1
+                break
+            for word2 in words:
+                if word == word2:
+                    break
+                weights[word] += (self.fword_deps[word2][word] + self.fword_deps[word][word2])
+            weights[word] /= (2*total)
+        for word in words:
+            self.candidates[ID]['Weights'].append(weights[word])
 
     def joinCandidate(self, ID, candidate):
         wordcount = candidate['wordCount']
