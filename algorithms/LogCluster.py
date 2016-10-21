@@ -263,10 +263,29 @@ class LogCluster():
             self.candidates[ID]['Weights'].append(weight/total)
 
     def weightf2(self, ID, candidate):
-        return "two: %s" % (candidate)
+        words = candidate['words']
+        total = candidate['wordCount']
+        self.candidates[ID]['Weights'] = []
+        weights = self.listToDict(words)
+        for word in words:
+            if not total:
+                weights[word] = 1
+                break
+            for word2 in words:
+                if word == word2:
+                    break
+                weights[word] += self.fword_deps[word2][word]
+            weights[word] /= total
+        for word in words:
+            self.candidates[ID]['Weights'].append(weights[word])
 
     def weightf3(self, ID, candidate):
-        return "three: %s" % (candidate)
+        words = candidate['words']
+        total = candidate['wordCount']
+        self.candidates[ID]['Weights'] = []
+
+        for word in words:
+            self.candidates[ID]['Weights'].append(0.5)
 
     def weightf4(self, ID, candidate):
         return "four: %s" % (candidate)
@@ -311,6 +330,9 @@ class LogCluster():
             i += 1
 
     # GLOBAL HELPERS
+    def listToDict(self, list):
+        return {x:0 for x in list}
+
     def returnWildcardData(self, ID, index, position):
         return self.candidates[ID]['wildcards'][index][position]
 
