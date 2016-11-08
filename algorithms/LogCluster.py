@@ -102,12 +102,12 @@ class LogCluster():
         return candidate, wildcards
 
     def initiateCandidate(self, words, count):
-        structure = {}
-        structure['words'] = words
-        structure['wordCount'] = len(words)
-        structure['count'] = count
-        structure['wildcards'] = []
-        return structure
+        return {
+            'words'     : words,
+            'wordCount' : len(words),
+            'count'     : count,
+            'wildcards' : []
+        }
 
     def populateWildcards(self, wildcards, structure):
         for wildcard in wildcards:
