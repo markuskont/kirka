@@ -19,7 +19,8 @@ class LogCluster():
                 source=None,
                 aggrsup=False,
                 wweight=None,
-                weightf=1
+                weightf=1,
+                separator=None
                 ):
         # parameters
         self.support    = support
@@ -41,6 +42,12 @@ class LogCluster():
             self.weightf            = weightf if isinstance(weightf, int) else 1
             self.fword_deps         = {}
 
+        self.separator = separator
+        if self.separator:
+            try:
+                self.separator = re.compile(separator)
+            except re.error:
+                raise
 
     # FIND FREQUENT WORDS
     def findWordsFromFile(self, source=None):
@@ -134,10 +141,11 @@ class LogCluster():
                 del self.candidates[key]
 
     def findClusters(self):
+        self.findFrequentCandidates()
         if self.wweight:
             self.joinCandidates()
         else:
-            self.cluster = self.candidates
+            self.clusters = self.candidates
         return self
 
     # AGGREGATE SUPPORTS
@@ -368,7 +376,11 @@ class LogCluster():
     # process subsequent line as JSON if @cee cookie is found
     # TODO
     def splitLine(self, line):
-        return line.split()
+        if self.separator and self.separator != '':
+            # re.split does return empty strings as '', unlike str.split
+            return filter(None, self.separator.split(line))
+        else:
+            return line.split()
 
     # return instance data structure, mainly for debug
     def returnFrequentWords(self):

@@ -91,6 +91,12 @@ if p>1 then ((dep(U1, Ui) + dep(Ui, U1)) + ... + (dep(Up, Ui) + dep(Ui, Up)) - 2
 if p=1 then 1
 """
 
+MAN_SEPARATOR = """
+Regular expression which matches separating characters between words.
+Default value for <word_separator_regexp> is \\s+ (i.e., regular expression
+that matches one or more whitespace characters).
+"""
+
 def logMsg(message, level):
     if(level=='error'):
         print(message)
@@ -107,6 +113,7 @@ def parse_arguments():
     parser.add_argument('-as', '--aggrsup', action='store_true', help=MAN_AGGRSUP)
     parser.add_argument('-ww', '--wweight', type=float, help=MAN_WWEIGHT)
     parser.add_argument('-wf', '--weightf', type=int, help=MAN_WEIGHTF)
+    parser.add_argument('-se', '--separator', help=MAN_SEPARATOR)
     args = parser.parse_args()
 
     return args
@@ -120,6 +127,7 @@ SUPPORT=ARGS.support
 AGGRSUP=ARGS.aggrsup
 WWEIGHT=ARGS.wweight
 WEIGHTF=ARGS.weightf
+SEPARATOR=ARGS.separator
 
 if WWEIGHT:
     if WWEIGHT < 0 or WWEIGHT > 1:
@@ -136,16 +144,24 @@ if not INPUT:
 if not SUPPORT:
     logMsg("Support value not defined", "error")
 
+if SEPARATOR:
+    try:
+        re.compile(SEPARATOR)
+    except re.error:
+        logMsg("Provided separator does not compile as valid regex", "error")
+
 def main():
     cluster = LogCluster(
                         SUPPORT,
                         INPUT,
                         AGGRSUP,
                         WWEIGHT,
-                        WEIGHTF
+                        WEIGHTF,
+                        SEPARATOR
                         )
     print('Finding words')
     cluster.findWordsFromFile()
+    #print(cluster.returnFrequentWords())
     print('Done')
     print('Finding frequent words')
     cluster.findFrequentWords()
@@ -159,23 +175,21 @@ def main():
     cluster.aggregateSupports()
     print('Ptree size: ', cluster.returnPTreeSize())
     print('Done')
-    print('Finding frequent candidates')
-    cluster.findFrequentCandidates()
-    print('Number of Candidates: ', cluster.returnCandidatesLength())
-    print('Done')
     print('Finding clusters')
     cluster.findClusters()
     print('Number of Clusters: ', cluster.returnClustersLength())
     print('Done')
 
     # DEBUG
+    words = cluster.returnFrequentWords()
     clusters = cluster.returnClusters()
-    #for key, value in clusters.items():
-    #    ID_HASH = hashlib.md5(key.encode()).hexdigest()
-    #    print('-------KEY--------')
-    #    print(ID_HASH)
-    #    print('-------VALUE------')
-    #    print(value)
+    print(dumpAsJSON(words))
+    for key, value in clusters.items():
+        ID_HASH = hashlib.md5(key.encode()).hexdigest()
+        print('-------KEY--------')
+        print(ID_HASH)
+        print('-------VALUE------')
+        print(value)
 
 if __name__ == "__main__":
     main()
