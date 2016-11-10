@@ -20,7 +20,7 @@ K2=5
 T=3
 STDLOG='/dev/tty'
 STDERR='/dev/tty'
-DUMPFILE_K='/tmp/topk.json'
+DUMPFILE_K='/tmp/topk.dmp'
 PIDFILE='/tmp/kirka.pid'
 RUNNING = True
 MAX_DATAGRAM_SIZE = 4096
@@ -50,9 +50,11 @@ class App():
         while(RUNNING):
             try:
                 datagram = server.recv( MAX_DATAGRAM_SIZE )
-                item = self.topk.add(datagram, K, K2, T)
-                if item:
-                    print item
+                words = datagram.split()
+                for word in words:
+                    item = self.topk.add(word, K, K2, T)
+                    if item:
+                        print item
             except socket.timeout:
                 continue
             except Exception as e:
@@ -71,9 +73,12 @@ class App():
 
     def SIGHUP_handler(self, signum, frame):
         syslog.syslog('SIGHUP received, dumping data')
-        if not os.path.exists(DUMPFILE_K):
-            with open(DUMPFILE_K, 'w') as fp:
-                json.dump(self.topk.returnItems(), fp)
+        self.dumpCouners(self.topk.returnItems(), DUMPFILE_K)
+
+    def dumpCouners(self, counters, dumpfile):
+        if not os.path.exists(dumpfile):
+            with open(dumpfile, 'w') as dump:
+                json.dump(counters, dump)
 
 class KDaemonRunner(runner.DaemonRunner):
     def _terminate_daemon_process(self):

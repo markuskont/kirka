@@ -161,7 +161,6 @@ def main():
                         )
     print('Finding words')
     cluster.findWordsFromFile()
-    #print(cluster.returnFrequentWords())
     print('Done')
     print('Finding frequent words')
     cluster.findFrequentWords()
@@ -181,15 +180,17 @@ def main():
     print('Done')
 
     # DEBUG
-    words = cluster.returnFrequentWords()
+    #words = cluster.returnFrequentWords()
     clusters = cluster.returnClusters()
-    print(dumpAsJSON(words))
+    #print(dumpAsJSON(words))
+    #clusters = cluster.returnCandidates()
     for key, value in clusters.items():
         ID_HASH = hashlib.md5(key.encode()).hexdigest()
         print('-------KEY--------')
         print(ID_HASH)
         print('-------VALUE------')
         print(value)
+
 
 if __name__ == "__main__":
     main()

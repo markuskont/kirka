@@ -58,9 +58,10 @@ class LogCluster():
         return self
 
     def findFrequentWords(self):
-        for word, count in self.fwords.copy().items():
-            if count < self.support:
-                del self.fwords[word]
+        keys_list = list( self.fwords.keys())
+        for key in keys_list:
+            if self.fwords[key] < self.support:
+                del self.fwords[key]
         return self
 
     def wordsFromLine(self, line):
@@ -136,8 +137,9 @@ class LogCluster():
 
     # FIND CLUSTERS
     def findFrequentCandidates(self):
-        for key, candidate in self.candidates.copy().items():
-            if candidate['count'] < self.support:
+        keys_list = list( self.candidates.keys())
+        for key in keys_list:
+            if self.candidates[key]['count'] < self.support:
                 del self.candidates[key]
 
     def findClusters(self):
