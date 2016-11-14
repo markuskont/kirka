@@ -403,7 +403,9 @@ class LogCluster():
     def splitLine(self, line):
         if self.separator and self.separator != '':
             # re.split does return empty strings as '', unlike str.split
-            return filter(None, self.separator.split(line))
+            return list(filter(None, self.separator.split(line)))
+            #print(self.separator.split(line))
+            #return self.separator.split(line)
         else:
             return line.split()
 
@@ -414,9 +416,17 @@ class LogCluster():
             if isinstance(value, dict):
                 result.extend(self.nestedDictToList(value))
             elif isinstance(value, list):
-                result.extend(str(value))
+                #new_list = []
+                #print(value)
+                #for i in range(value):
+                #    new_list.extend(self.splitLine(value[i]))
+                result.extend(value)
             else:
-                result.append(str(value))
+                value = self.splitLine(str(value))
+                if isinstance(value, list):
+                    result.extend(value)
+                else:
+                    result.append(value)
         return result
 
     # return instance data structure, mainly for debug
