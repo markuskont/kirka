@@ -128,6 +128,8 @@ AGGRSUP=ARGS.aggrsup
 WWEIGHT=ARGS.wweight
 WEIGHTF=ARGS.weightf
 SEPARATOR=ARGS.separator
+CEE_PARSE=True
+CEE_PREFIX='@cee: '
 
 if WWEIGHT:
     if WWEIGHT < 0 or WWEIGHT > 1:
@@ -157,7 +159,9 @@ def main():
                         AGGRSUP,
                         WWEIGHT,
                         WEIGHTF,
-                        SEPARATOR
+                        SEPARATOR,
+                        CEE_PARSE,
+                        CEE_PREFIX
                         )
     print('Finding words')
     cluster.findWordsFromFile()

@@ -20,7 +20,9 @@ class LogCluster():
                 aggrsup=False,
                 wweight=None,
                 weightf=1,
-                separator=None
+                separator=None,
+                CEE_parse=False,
+                CEE_prefix='@cee: '
                 ):
         # parameters
         self.support    = support
@@ -49,6 +51,9 @@ class LogCluster():
             except re.error:
                 raise
 
+        self.CEE_parse = CEE_parse
+        self.CEE_prefix = CEE_prefix
+
     # FIND FREQUENT WORDS
     def findWordsFromFile(self, source=None):
         source = self.evalFileInput(source)
@@ -65,7 +70,7 @@ class LogCluster():
         return self
 
     def wordsFromLine(self, line):
-        return self.incrementCounter(self.splitLine(line), self.fwords)
+        return self.incrementCounter(self.processLine(line), self.fwords)
 
     def incrementCounter(self, array, counts):
         for item in array:
@@ -98,7 +103,7 @@ class LogCluster():
         candidate = []
         wildcards = []
         varnum = 0
-        words = self.splitLine(line)
+        words = self.processLine(line)
         for word in words:
             if word in self.fwords:
                 candidate.append(word)
@@ -377,12 +382,40 @@ class LogCluster():
     # alternatively, use more expensive re.split() if separator is defined
     # process subsequent line as JSON if @cee cookie is found
     # TODO
+    def processLine(self, line):
+        if self.CEE_parse and self.CEE_prefix in line:
+            processed = line.split(self.CEE_prefix)
+            log = self.splitLine(processed[0])
+            structured = []
+            try:
+                structured = self.nestedDictToList(json.loads(processed[1]))
+            except ValueError:
+                # just process as string if parse fails
+                # NOTE! Maybe create debug here to find broken json logs?
+                structured = self.splitLine(processed[1])
+            log.extend(structured)
+            return log
+        else:
+            return self.splitLine(line)
+
     def splitLine(self, line):
         if self.separator and self.separator != '':
             # re.split does return empty strings as '', unlike str.split
             return filter(None, self.separator.split(line))
         else:
             return line.split()
+
+    def nestedDictToList(self, d):
+        result = []
+        for key, value in sorted(d.items()):
+            result.append(key)
+            if isinstance(value, dict):
+                result.extend(self.nestedDictToList(value))
+            elif isinstance(value, list):
+                result.extend(str(value))
+            else:
+                result.append(str(value))
+        return result
 
     # return instance data structure, mainly for debug
     def returnFrequentWords(self):
