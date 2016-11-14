@@ -22,7 +22,8 @@ class LogCluster():
                 weightf=1,
                 separator=None,
                 CEE_parse=False,
-                CEE_prefix='@cee: '
+                CEE_prefix='@cee: ',
+                encoding='utf-8'
                 ):
         # parameters
         self.support    = support
@@ -54,10 +55,12 @@ class LogCluster():
         self.CEE_parse = CEE_parse
         self.CEE_prefix = CEE_prefix
 
+        self.encoding = encoding
+
     # FIND FREQUENT WORDS
     def findWordsFromFile(self, source=None):
         source = self.evalFileInput(source)
-        with open(source) as f:
+        with open(source, encoding=self.encoding) as f:
             for line in f:
                 self.fwords = self.wordsFromLine(line)
         return self
@@ -80,7 +83,7 @@ class LogCluster():
     # FIND CANDIDATES
     def findCandidatesFromFile(self, source=None):
         source = self.evalFileInput(source)
-        with open(source) as f:
+        with open(source, encoding=self.encoding) as f:
             for line in f:
                 self.candidateFromLine(line)
         if self.wweight:
@@ -126,7 +129,6 @@ class LogCluster():
         for wildcard in wildcards:
             structure['wildcards'].append([wildcard, wildcard])
         return structure
-
 
     def modifyCandidate(self, ID, wildcards):
         total = len(wildcards)
