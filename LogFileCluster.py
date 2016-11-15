@@ -97,14 +97,6 @@ Default value for <word_separator_regexp> is \\s+ (i.e., regular expression
 that matches one or more whitespace characters).
 """
 
-def logMsg(message, level):
-    if(level=='error'):
-        print(message)
-        print("Please refer to --help")
-        sys.exit(1)
-    else:
-        print(message)
-
 def parse_arguments():
 
     parser = argparse.ArgumentParser()
@@ -165,36 +157,29 @@ def main():
                         )
     print('Finding words')
     cluster.findWordsFromFile()
+    dumpDataToFile(cluster.returnFrequentWords(), '/tmp/logcluster-wordcount.dmp')
     print('Done')
     print('Finding frequent words')
     cluster.findFrequentWords()
+    dumpDataToFile(cluster.returnFrequentWords(), '/tmp/logcluster-fwords.dmp')
     print('Number of F Words: ', cluster.returnFrequentWordsLength())
     print('Done')
     print('Finding candidates')
     cluster.findCandidatesFromFile()
+    dumpDataToFile(cluster.returnCandidates(), '/tmp/logcluster-candidates.dmp')
     print('Number of Candidates: ', cluster.returnCandidatesLength())
     print('Done')
     print('Aggregating supports')
     cluster.aggregateSupports()
+    dumpDataToFile(cluster.returnPTree(), '/tmp/logcluster-ptree.dmp')
+    dumpDataToFile(cluster.returnCandidates(), '/tmp/logcluster-agg-candidates.dmp')
     print('Ptree size: ', cluster.returnPTreeSize())
     print('Done')
     print('Finding clusters')
     cluster.findClusters()
+    dumpDataToFile(cluster.returnClusters(), '/tmp/logcluster-clusters.dmp')
     print('Number of Clusters: ', cluster.returnClustersLength())
     print('Done')
-
-    # DEBUG
-    #words = cluster.returnFrequentWords()
-    clusters = cluster.returnClusters()
-    #print(dumpAsJSON(words))
-    #clusters = cluster.returnCandidates()
-    for key, value in clusters.items():
-        ID_HASH = hashlib.md5(key.encode()).hexdigest()
-        print('-------KEY--------')
-        print(ID_HASH)
-        print('-------VALUE------')
-        print(value)
-
 
 if __name__ == "__main__":
     main()
