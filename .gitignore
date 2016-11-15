@@ -5,3 +5,7 @@ __pycache__/
 *.py[cod]
 
 .vagrant/**/*
+
+*.dmp
+data/**/*
+data/
