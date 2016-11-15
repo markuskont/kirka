@@ -167,6 +167,7 @@ def main():
     print('Finding candidates')
     cluster.findCandidatesFromFile()
     dumpDataToFile(cluster.returnCandidates(), '/tmp/logcluster-candidates.dmp')
+    dumpDataToFile(cluster.returnFwordDeps(), '/tmp/logcluster-fword-deps.dmp')
     print('Number of Candidates: ', cluster.returnCandidatesLength())
     print('Done')
     print('Aggregating supports')
