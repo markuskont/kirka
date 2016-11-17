@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import operator
 
 import numpy as np
+import math
 
 #from bokeh.plotting import figure, output_file, show
 from bokeh.charts import Bar, Line, output_file, show
@@ -23,11 +24,48 @@ def parse_arguments():
 
     return args
 
+def calcExponentialGrowthRate(
+    FinalAmount,
+    BeginningAmount,
+    Time):
+    # FinalAmount = BeginningAmount*e**constant*Time
+    return np.log( FinalAmount / BeginningAmount ) / Time
+
+def assessValues(data, count=0):
+    data = sorted(data)
+    print('MAX: ', data[-1])
+    percentile = np.percentile(data, 99.99)
+    print(percentile)
+    growth = calcExponentialGrowthRate(data[-1], data[0], count)
+    print(growth)
+
+    stop, start = 20, 2
+    print(calcExponentialGrowthRate(stop, start, data.index(stop) - data.index(start)))
+    stop, start = 586202, 20
+    print(calcExponentialGrowthRate(stop, start, data.index(stop) - data.index(start)))
+
+    steps = 50
+    step = math.floor(len(data) / steps)
+
+    stop = 0
+    for start in range(steps):
+        stop += step
+        growth = calcExponentialGrowthRate(data[stop], data[start], step)
+        print(growth)
+
+def drawLineGraph(data=[]):
+    line = Line(sorted(data), title='Words', legend=False, ylabel='Count', width=1500)
+
+    output_file("out.html")
+    show(line)
+
 def main():
     args = parse_arguments()
     infile=args.infile
+
     with open(infile) as data_file:
         data = json.load(data_file)
+
     sketch = {}
     count = 0
     filtered_count = 0
@@ -45,29 +83,13 @@ def main():
             filtered_count += 1
         count += 1
 
-
     print('Elements: ', count)
     print('Elements after preliminary filtering: ', filtered_count)
     print('Collisions: ', collisions)
 
-    #keys = sketch.keys()
-    #values = sketch.values()
-    #values = [10, 20, 40, 30]
+    assessValues(values, filtered_count)
+    drawLineGraph(values)
 
-    #q = Bar(keys, values, title="simple line example", xlabel='x', ylabel='y')
-    #bar = Bar(sorted(values),xlabel="x",ylabel="Y", width=len(values))
-    #bar.toolbar.logo = None
-    #bar.toolbar_location = None
-    #q.line(keys, values, legend="Temp.", line_width=2)
-    values = sorted(values)
-    #print(values[-1])
-    percentile = np.percentile(values,99)
-    print(percentile)
-
-    line = Line(values, title='Words', legend=False, ylabel='Count', width=1500)
-
-    output_file("out.html")
-    show(line)
 
 if __name__ == "__main__":
     main()
