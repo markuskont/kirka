@@ -10,6 +10,8 @@ import hashlib
 import matplotlib.pyplot as plt
 import operator
 
+import numpy as np
+
 #from bokeh.plotting import figure, output_file, show
 from bokeh.charts import Bar, Line, output_file, show
 
@@ -58,7 +60,9 @@ def main():
     #bar.toolbar_location = None
     #q.line(keys, values, legend="Temp.", line_width=2)
     values = sorted(values)
-    print(values[-1])
+    #print(values[-1])
+    percentile = np.percentile(values,99)
+    print(percentile)
 
     line = Line(values, title='Words', legend=False, ylabel='Count', width=1500)
 

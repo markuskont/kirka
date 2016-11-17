@@ -77,7 +77,10 @@ class LogCluster():
 
     def incrementCounter(self, array, counts):
         for item in array:
-            counts[item] = counts.get(item, 0) + 1
+            try:
+                counts[item] = counts.get(item, 0) + 1
+            except TypeError:
+                print(item)
         return counts
 
     # FIND CANDIDATES
