@@ -80,7 +80,7 @@ class LogCluster():
             try:
                 counts[item] = counts.get(item, 0) + 1
             except TypeError:
-                print(item)
+                pass
         return counts
 
     # FIND CANDIDATES
@@ -419,11 +419,7 @@ class LogCluster():
             if isinstance(value, dict):
                 result.extend(self.nestedDictToList(value))
             elif isinstance(value, list):
-                #new_list = []
-                #print(value)
-                #for i in range(value):
-                #    new_list.extend(self.splitLine(value[i]))
-                result.extend(value)
+                pass
             else:
                 value = self.splitLine(str(value))
                 if isinstance(value, list):
@@ -431,6 +427,16 @@ class LogCluster():
                 else:
                     result.append(value)
         return result
+
+    def tryList(self, data, res=[]):
+        for item in data:
+            if isinstance(item, list):
+                res = self.tryList(item)
+            elif isinstance(item, dict):
+                res.extend(self.nestedDictToList(item))
+            else:
+                res.append(item)
+        return res
 
     # return instance data structure, mainly for debug
     def returnFrequentWords(self):
